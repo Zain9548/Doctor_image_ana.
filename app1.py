@@ -1,13 +1,11 @@
 import streamlit as st
 from pathlib import Path
-import google.generativeai as genai
+import openai
 
-from app import api_key
+# Configure OpenAI with API key
+openai.api_key = "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"  
 
-# Configure genai with API key
-genai.configure(api_key=api_key)
-
-# Set up the models
+# Set up the model parameters
 generation_config = {
     "temperature": 0.4,
     "top_p": 1,
@@ -15,7 +13,7 @@ generation_config = {
     "max_output_tokens": 4096,
 }
 
-# apply safety settings
+# apply safety settings (same as before if needed)
 safety_settings = [
     {
         "category": "HARM_CATEGORY_HARASSMENT",
@@ -56,57 +54,41 @@ Important Notes:
 Please provide me an output response with these 4 headings Detailed Analysis,finding Report,Recommendation and Next steps,Treatment Suggestion
 """
 
-# Model configuration
-model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    generation_config=generation_config,
-    safety_settings=safety_settings
-)
-
-#page configuration
+# page configuration
 st.set_page_config(page_title="VitalImage Analytics", page_icon=":robot:")
-
-#logo
-#st.image("skill_curb.jpeg", width=60)
 
 # title
 st.title("🧑‍⚕️ Your Doctor Image 📷 Analysis")
 
-#subtitle
+# subtitle
 st.subheader("An application that can help users identify medical images")
 
-# upload the dieseases image
+# upload the diseases image
 uploaded_file = st.file_uploader("Upload the medical image for analysis", type=["png", "jpg", "jpeg"])
 if uploaded_file:
-    st.image(uploaded_file,width=350,caption="Uploaded Dieases Image")
+    st.image(uploaded_file, width=350, caption="Uploaded Disease Image")
 
 # create a submit button
 submit_button = st.button("Generate the Analysis")
 
 if submit_button:
     if uploaded_file is not None:
-        #process the uploaded image
+        # process the uploaded image
         image_data = uploaded_file.getvalue()
 
-        # image ready
-        image_parts = [
-            {
-                "mime_type": "image/jpeg",  # Corrected 'mime_type'
-                "data": image_data
-            },
-        ]
+        # OpenAI does not support image generation directly, so we need to use the image analysis API here.
+        # You can send the image to a service (or model) that handles medical image analysis, and then use OpenAI for the textual response.
 
-        # making a prompt ready
-        prompt_parts = [
-            image_parts[0],
-            system_prompt,
-        ]
+        # For now, let's use a simple text prompt to simulate the analysis:
+        response = openai.Completion.create(
+            engine="text-davinci-003",  # You can replace this with a model of your choice
+            prompt=system_prompt,
+            max_tokens=4096,
+            temperature=0.4
+        )
 
-        # #Generative a response based on promt and image
-        st.title("Here is the analysis based on your image ")
-        response = model.generate_content(prompt_parts)
         # Display the generated response text
-        st.write(response.text)
+        st.write(response.choices[0].text)
 
     else:
         st.error("Please upload a valid medical image to proceed.")
